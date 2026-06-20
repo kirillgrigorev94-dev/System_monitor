@@ -1,6 +1,8 @@
 import psutil
 import time
 import tkinter as tk
+import signal
+import sys
 from tkinter import ttk
 from datetime import datetime
 from matplotlib.figure import Figure
@@ -344,6 +346,14 @@ class SystemMonitorApp:
         
         # Перерисовываем холст с обновлённым графиком
         self.canvas.draw()
+        
+    def signal_handler(sig, frame):
+        print("\nПолучен сигнал завершения. Закрываю приложение...")
+        root.destroy()
+        sys.exit(0)
+        
+    # Регистрируем обработчик для SIGINT
+    signal.signal(signal.SIGINT, signal_handler)
         
 # --- Основная часть программы ---
 
