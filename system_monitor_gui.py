@@ -93,11 +93,19 @@ class SystemMonitorApp:
         graph_frame = ttk.LabelFrame(main_frame, text="Графики загрузки", padding="10")
         graph_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
 
+        # Ключевое исправление: говорим grid, чтобы строка 2 и столбец 0 растягивались
+        main_frame.grid_rowconfigure(2, weight=1)      # строка с графиком занимает свободное место по вертикали
+        main_frame.grid_columnconfigure(0, weight=1)   # столбец с графиком занимает свободное место по горизонтали
+        
+        # Внутри graph_frame тоже включаем растяжение для холста
+        graph_frame.grid_rowconfigure(0, weight=1)
+        graph_frame.grid_columnconfigure(0, weight=1)
+
         # Создание фигуры matplotlib для отображения графика
-        self.figure = Figure(figsize=(6, 3), dpi=100)
+        self.figure = Figure(figsize=(6, 4.5), dpi=100)
         self.ax = self.figure.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.figure, graph_frame)
-        self.canvas.get_tk_widget().grid(row=0, column=0)
+        self.canvas.get_tk_widget().grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         
     def get_cpu_info(self):
         """
@@ -328,7 +336,11 @@ class SystemMonitorApp:
         # Автоматическое масштабирование осей
         if x:
             self.ax.set_xlim(0, max(x))
-        self.ax.set_ylim(0, 100) # Загрузка не может превышать 100 %
+        # Динамический Y с запасом 5% сверху и снизу
+        y_min = min(min(self.cpu_history), min(self.ram_history))
+        y_max = max(max(self.cpu_history), max(self.ram_history))
+        margin = max(1, (y_max - y_min) * 0.05)  # минимум 1% запаса
+        self.ax.set_ylim(max(0, y_min - margin), min(100, y_max + margin))
         
         # Перерисовываем холст с обновлённым графиком
         self.canvas.draw()
